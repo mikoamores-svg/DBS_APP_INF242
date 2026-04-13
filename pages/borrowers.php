@@ -22,6 +22,13 @@ $password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
 
 //step 3: insert into users table and get new user_id
 $user_id = $con->insertUser($email, $password_hash, $is_active);
+
+
+ //step 4: Insert into borrowers table and get mew borrower_id
+ $borrower_id = $con->insertborrowers($firstname, $lastname, $email, $phone, $member_since, $is_active);
+
+ //step 5: Insert into borroweruser mapping(linking) table
+$con->insertBorrowerUser($borrower_id, $user_id);
 }
 ?>
 
