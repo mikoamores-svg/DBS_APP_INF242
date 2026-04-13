@@ -4,6 +4,9 @@ require_once('../classes/database.php');
 $con = new database();
 $data = $con->opencon();
 
+$borrowercreatestatus = null;
+$borrowercreatemessage = '';
+
 if(isset($_POST['add_borrower'])){
   //this is the first step : collect all the validate input
   //firstname,lastname,email,phone,member_since,is_active,temp_password\
@@ -15,10 +18,13 @@ if(isset($_POST['add_borrower'])){
   $member_since = $_POST['member_since'];
   $is_active = $_POST['is_active'];
   $temp_password = $_POST['temp_password'];
+  $password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
 
   //second step: hash the password
 
-$password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
+  try {
+
+
 
 //step 3: insert into users table and get new user_id
 $user_id = $con->insertUser($email, $password_hash, $is_active);
@@ -29,6 +35,15 @@ $user_id = $con->insertUser($email, $password_hash, $is_active);
 
  //step 5: Insert into borroweruser mapping(linking) table
 $con->insertBorrowerUser($borrower_id, $user_id);
+
+    $borrowercreatestatus = 'success';
+    $borrowercreatemessage = 'Borrower created successfully';
+
+  }catch(Exception $e){
+
+    $borrowercreatestatus = 'Error';
+    $borrowercreatemessage = 'Error creating borrower';
+  }
 }
 ?>
 
@@ -38,9 +53,10 @@ $con->insertBorrowerUser($borrower_id, $user_id);
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Borrowers — Admin</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
   <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.css">
+  <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
@@ -267,6 +283,28 @@ $con->insertBorrowerUser($borrower_id, $user_id);
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.js"></script>
+<script>
+const createStatus = <?php echo json_encode($borrowercreatestatus) ?>;
+const createMessage = <?php echo json_encode($borrowercreatemessage) ?>;
+
+if(createStatus == 'success') {
+  Swal.fire({
+    icon: 'success',
+    title: 'success',
+    text: createMessage,
+    confirmButtonText: 'OK'
+  });
+}else if(createStatus == 'error') {
+  Swal.fire({
+    icon: 'error',
+    title: 'error',
+    text: createMessage,
+    confirmButtonText: 'OK'
+  });
+}
+</script>
 </body>
 </html>
