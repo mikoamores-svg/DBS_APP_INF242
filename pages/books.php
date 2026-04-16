@@ -1,12 +1,50 @@
+<?php
+
+require_once('../classes/database.php');
+$con = new database();
+$data = $con->opencon();
+
+$bookstatus = null;
+$bookmessage = '';
+
+if(isset($_POST['add_books'])){
+  //this is the first step : collect all the validate input
+  //firstname,lastname,email,phone,member_since,is_active,temp_password\
+  
+  $booktitle = $_POST ['book_title'];
+  $bookisbns = $_POST['book_isbn'];
+  $book_pub_year = $_POST['book_publication_year'];
+  $bookedition = $_POST['book_edition'];
+  $bookpublisher = $_POST['book_publisher'];
+
+
+  try {
+
+ //step 4: Insert into borrowers table and get new borrower_id
+  $con->insertBooks($booktitle, $bookisbns, $book_pub_year, $bookedition, $bookpublisher);
+
+
+    $bookstatus = 'success';
+    $bookmessage = 'Borrower created successfully';
+
+  }catch(Exception $e){
+
+    $bookstatus = 'Error';
+    $bookmessage = $e->getMessage();
+  }
+}
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Books — Admin</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
+<link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
@@ -61,7 +99,7 @@
             <label class="form-label">Publisher</label>
             <input class="form-control" name="book_publisher" placeholder="optional">
           </div>
-          <button class="btn btn-primary w-100" type="submit">Save Book</button>
+          <button class="btn btn-primary w-100" type="submit" name="add_books">Save Book</button>
         </form>
       </div>
 
@@ -249,7 +287,28 @@
     </div>
   </div>
 </div>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.js"></script>
+<script>
+const bookStatus = <?php echo json_encode($bookstatus) ?>;
+const bookMessage = <?php echo json_encode($bookmessage) ?>;
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+if(bookStatus == 'success') {
+  Swal.fire({
+    icon: 'success',
+    title: 'success',
+    text: bookMessage,
+    confirmButtonText: 'OK'
+  });
+}else if(bookStatus == 'error') {
+  Swal.fire({
+    icon: 'error',
+    title: 'error',
+    text: bookMessage,
+    confirmButtonText: 'OK'
+  });
+}
+</script>
 </body>
 </html>

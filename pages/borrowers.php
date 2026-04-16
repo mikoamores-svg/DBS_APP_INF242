@@ -4,6 +4,7 @@ require_once('../classes/database.php');
 $con = new database();
 $data = $con->opencon();
 
+
 $borrowercreatestatus = null;
 $borrowercreatemessage = '';
 
@@ -18,10 +19,10 @@ if(isset($_POST['add_borrower'])){
   $member_since = $_POST['member_since'];
   $is_active = $_POST['is_active'];
   $temp_password = $_POST['temp_password'];
-  $password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
+
 
   //second step: hash the password
-
+ $password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
   try {
 
 
@@ -43,6 +44,38 @@ $con->insertBorrowerUser($borrower_id, $user_id);
 
     $borrowercreatestatus = 'Error';
     $borrowercreatemessage = 'Error creating borrower';
+  }
+}
+
+$borroweraddressstatus = null;
+$borroweraddressmessage = '';
+
+if(isset($_POST['add_address'])){
+  //this is the first step : collect all the validate input
+  //firstname,lastname,email,phone,member_since,is_active,temp_password\
+  
+  $borrowerid = $_POST ['borrower_id'];
+  $housenumber = $_POST['ba_house_number'];
+  $street = $_POST['ba_street'];
+  $barangay = $_POST['ba_barangay'];
+  $city = $_POST['ba_city'];
+  $province = $_POST['ba_province'];
+  $postalcode = $_POST['ba_postal_code'];
+  $is_active = $_POST['is_primary'];
+
+  try {
+
+ //step 4: Insert into borrowers table and get mew borrower_id
+  $con->insertBorrowerAddress($borrowerid, $housenumber, $street, $barangay, $city, $province, $postalcode, $is_active);
+
+
+    $borroweraddressstatus = 'success';
+    $borroweraddressmessage = 'Borrower created successfully';
+
+  }catch(Exception $e){
+
+    $borroweraddressstatus = 'Error';
+    $borroweraddressmessage = $e->getMessage();
   }
 }
 ?>
@@ -206,10 +239,10 @@ $con->insertBorrowerUser($borrower_id, $user_id);
                 <select class="form-select" name="borrower_id" required>
                   <option value="">Select borrower</option>
                   <?php
-                  $allborrower = $con->viewborrower();
-                  foreach($allborrower as $borrower){
-                  echo'<option value="'.$borrower['borrower_id'] .'">'.'['.$borrower['borrower_id'].'] '.$borrower['borrower_firstname'].
-                  ' '. $borrower['borrower_lastname'].'</option>';
+                  $all = $con->viewborrowers();
+                  foreach($all as $borrowers){
+                  echo'<option value="'.$borrowers['borrower_id'] .'">'.'['.$borrowers['borrower_id'].'] '.$borrowers['borrower_firstname'].
+                  ' '. $borrowers['borrower_lastname'].'</option>';
                   }?>
                 </select>
               </div>
@@ -245,7 +278,7 @@ $con->insertBorrowerUser($borrower_id, $user_id);
                 </select>
               </div>
               <div class="col-12">
-                <button class="btn btn-outline-primary w-100" type="submit">Add Address</button>
+                <button class="btn btn-outline-primary w-100" type="submit" name = "add_address">Add Address</button>
                 
               </div>
             </form>
@@ -307,6 +340,26 @@ if(createStatus == 'success') {
     confirmButtonText: 'OK'
   });
 }
+
+const createaddressStatus = <?php echo json_encode($borroweraddressstatus) ?>;
+const createaddressMessage = <?php echo json_encode($borroweraddressmessage) ?>;
+
+if(createaddressStatus == 'success') {
+  Swal.fire({
+    icon: 'success',
+    title: 'success',
+    text: createaddressMessage,
+    confirmButtonText: 'OK'
+  });
+}else if(createaddressStatus == 'error') {
+  Swal.fire({
+    icon: 'error',
+    title: 'error',
+    text: createaddressMessage,
+    confirmButtonText: 'OK'
+  });
+}
+
 </script>
 </body>
 </html>

@@ -7,6 +7,13 @@ class database{
         username: "root", 
         password: "");
     }
+
+    function viewborrowers(){
+        $con = $this->opencon();
+            return $con->query("SELECT * FROM borrowers")->fetchALL();
+    }
+
+
     function insertUser($username, $password_hash, $is_active){
         $con = $this ->opencon();
 
@@ -66,11 +73,39 @@ class database{
         }
     }
 
-function viewborrowers(){
-    $con = this->opencon();
-        return $con->query('SELECT * FROM Borrowers')->fetchALL();
-}
+    function insertBorrowerAddress($borrowerid, $housenumber, $street, $barangay, $city, $province, $postalcode, $is_active) {
+        $con = $this ->opencon();
 
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO BorrowerAddress (borrower_id, ba_house_number, ba_street, ba_barangay, ba_city, ba_province, ba_postal_code, is_primary) 
+            VALUES (?,?,?,?,?,?,?,?) ");
+            $stmt->execute([$borrowerid, $housenumber, $street, $barangay, $city, $province, $postalcode, $is_active]);
+            $con->commit();
+            return true;
+        }catch(PDOException $e) {
+            if($con->inTransaction()) {
+                $con->rollback();
+            }
+            throw $e;
+        }
+    }
 
-    
+    function insertBooks($booktitle, $bookisbns, $book_pub_year, $bookedition, $bookpublisher) {
+        $con = $this ->opencon();
+
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO Books (book_title, book_isbn, book_publication_year, book_edition, book_publisher) 
+            VALUES (?,?,?,?,?) ");
+            $stmt->execute([$booktitle, $bookisbns, $book_pub_year, $bookedition, $bookpublisher]);
+            $con->commit();
+            return true;
+        }catch(PDOException $e) {
+            if($con->inTransaction()) {
+                $con->rollback();
+            }
+            throw $e;
+        }
+    }
 }
