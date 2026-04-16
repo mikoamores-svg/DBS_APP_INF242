@@ -3,7 +3,7 @@
 class database{
     function opencon(): PDO{
         return new PDO("mysql:host=localhost;
-        dbname=242_LMS",
+        dbname=242_lms",
         username: "root", 
         password: "");
     }
@@ -65,4 +65,12 @@ class database{
             throw $e;
         }
     }
+
+function viewborrowers(){
+    $con = this->opencon();
+        return $con->query('SELECT * FROM Borrowers')->fetchALL();
+}
+
+
+    
 }

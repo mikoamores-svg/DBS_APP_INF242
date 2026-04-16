@@ -205,11 +205,12 @@ $con->insertBorrowerUser($borrower_id, $user_id);
                 <label class="form-label">Borrower</label>
                 <select class="form-select" name="borrower_id" required>
                   <option value="">Select borrower</option>
-                  <option value="1">Juan Dela Cruz</option>
-                  <option value="2">Maria Santos</option>
-                  <option value="3">Mark Reyes</option>
-                  <option value="4">Ana Bautista</option>
-                  <option value="6">Grace Mendoza</option>
+                  <?php
+                  $allborrower = $con->viewborrower();
+                  foreach($allborrower as $borrower){
+                  echo'<option value="'.$borrower['borrower_id'] .'">'.'['.$borrower['borrower_id'].'] '.$borrower['borrower_firstname'].
+                  ' '. $borrower['borrower_lastname'].'</option>';
+                  }?>
                 </select>
               </div>
               <div class="col-6">
@@ -245,6 +246,7 @@ $con->insertBorrowerUser($borrower_id, $user_id);
               </div>
               <div class="col-12">
                 <button class="btn btn-outline-primary w-100" type="submit">Add Address</button>
+                
               </div>
             </form>
           </div>
