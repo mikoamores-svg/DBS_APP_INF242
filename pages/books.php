@@ -7,32 +7,73 @@ $data = $con->opencon();
 $bookstatus = null;
 $bookmessage = '';
 
+// Handle Add Book
 if(isset($_POST['add_books'])){
-  //this is the first step : collect all the validate input
-  //firstname,lastname,email,phone,member_since,is_active,temp_password\
-  
-  $booktitle = $_POST ['book_title'];
+  $booktitle = $_POST['book_title'];
   $bookisbns = $_POST['book_isbn'];
   $book_pub_year = $_POST['book_publication_year'];
   $bookedition = $_POST['book_edition'];
   $bookpublisher = $_POST['book_publisher'];
 
-
   try {
-
- //step 4: Insert into borrowers table and get new borrower_id
-  $con->insertBooks($booktitle, $bookisbns, $book_pub_year, $bookedition, $bookpublisher);
-
-
+    $con->insertBooks($booktitle, $bookisbns, $book_pub_year, $bookedition, $bookpublisher);
     $bookstatus = 'success';
-    $bookmessage = 'Borrower created successfully';
-
+    $bookmessage = 'Book added successfully';
   }catch(Exception $e){
-
     $bookstatus = 'Error';
     $bookmessage = $e->getMessage();
   }
 }
+
+// Handle Add Book Copy
+if(isset($_POST['add_copy'])){
+  $book_id = $_POST['book_id'];
+  $status = $_POST['status'];
+
+  try {
+    $con->insertBookCopy($book_id, $status);
+    $bookstatus = 'success';
+    $bookmessage = 'Book copy added successfully';
+  }catch(Exception $e){
+    $bookstatus = 'Error';
+    $bookmessage = $e->getMessage();
+  }
+}
+
+// Handle Assign Author
+if(isset($_POST['assign_author'])){
+  $book_id = $_POST['book_id'];
+  $author_id = $_POST['author_id'];
+
+  try {
+    $con->insertBookAuthor($book_id, $author_id);
+    $bookstatus = 'success';
+    $bookmessage = 'Author assigned to book successfully';
+  }catch(Exception $e){
+    $bookstatus = 'Error';
+    $bookmessage = $e->getMessage();
+  }
+}
+
+// Handle Assign Genre
+if(isset($_POST['assign_genre'])){
+  $book_id = $_POST['book_id'];
+  $genre_id = $_POST['genre_id'];
+
+  try {
+    $con->insertBookGenre($book_id, $genre_id);
+    $bookstatus = 'success';
+    $bookmessage = 'Genre assigned to book successfully';
+  }catch(Exception $e){
+    $bookstatus = 'Error';
+    $bookmessage = $e->getMessage();
+  }
+}
+
+// Fetch books, authors, and genres
+$books = $con->getBooks();
+$authors = $con->getAuthors();
+$genres = $con->getGenres();
 ?>
 
 <!doctype html>
@@ -107,16 +148,14 @@ if(isset($_POST['add_books'])){
         <h6 class="mb-2">Add Copy</h6>
         <p class="small-muted mb-3">Creates a row in <b>BookCopy</b>.</p>
         <!-- Later in PHP: action="../php/copies/create.php" method="POST" -->
-        <form action="#" method="POST">
+        <form action="books.php" method="POST">
           <div class="mb-3">
             <label class="form-label">Book</label>
             <select class="form-select" name="book_id" required>
               <option value="">Select book</option>
-              <option value="1">Noli Me Tangere</option>
-              <option value="2">El Filibusterismo</option>
-              <option value="3">Mga Ibong Mandaragit</option>
-              <option value="4">Smaller and Smaller Circles</option>
-              <option value="5">Dekada ’70</option>
+              <?php foreach($books as $book): ?>
+              <option value="<?php echo $book['book_id']; ?>"><?php echo $book['book_title']; ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
           <div class="mb-3">
@@ -129,7 +168,7 @@ if(isset($_POST['add_books'])){
               <option value="REPAIR">REPAIR</option>
             </select>
           </div>
-          <button class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
+          <button class="btn btn-outline-primary w-100" type="submit" name="add_copy">Add Copy</button>
         </form>
       </div>
     </div>
@@ -139,7 +178,7 @@ if(isset($_POST['add_books'])){
         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-end mb-3">
           <div>
             <h5 class="mb-1">Books List</h5>
-            <div class="small-muted">Placeholder rows. Replace with PHP + MySQL output.</div>
+            <div class="small-muted"><?php echo count($books) . ' book' . (count($books) != 1 ? 's' : '') . ' in database'; ?></div>
           </div>
           <div class="d-flex gap-2">
             <input class="form-control" style="max-width: 260px;" placeholder="Search title / ISBN...">
@@ -162,32 +201,27 @@ if(isset($_POST['add_books'])){
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>Noli Me Tangere</td>
-                <td>9789710810736</td>
-                <td>1887</td>
-                <td>National Book Store</td>
-                <td>3</td>
-                <td><span class="badge text-bg-success">2</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>Smaller and Smaller Circles</td>
-                <td>9789712721768</td>
-                <td>2002</td>
-                <td>Ateneo de Manila University Press</td>
-                <td>2</td>
-                <td><span class="badge text-bg-warning">1</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
+              <?php if(count($books) > 0): ?>
+                <?php foreach($books as $book): ?>
+                <tr>
+                  <td><?php echo $book['book_id']; ?></td>
+                  <td><?php echo $book['book_title']; ?></td>
+                  <td><?php echo $book['book_isbn'] ?? 'N/A'; ?></td>
+                  <td><?php echo $book['book_publication_year'] ?? 'N/A'; ?></td>
+                  <td><?php echo $book['book_publisher'] ?? 'N/A'; ?></td>
+                  <td>-</td>
+                  <td><span class="badge text-bg-secondary">-</span></td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                  </td>
+                </tr>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-3">No books found</td>
+                </tr>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
@@ -200,24 +234,25 @@ if(isset($_POST['add_books'])){
               <h6 class="mb-2">Assign Author to Book</h6>
               <p class="small-muted mb-3">Creates a row in <b>BookAuthors</b>.</p>
               <!-- Later in PHP: action="../php/bookauthors/create.php" method="POST" -->
-              <form action="#" method="POST" class="row g-2">
+              <form action="books.php" method="POST" class="row g-2">
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
                     <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php foreach($books as $book): ?>
+                    <option value="<?php echo $book['book_id']; ?>"><?php echo $book['book_title']; ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="author_id" required>
                     <option value="">Select author</option>
-                    <option value="1">Jose Rizal</option>
-                    <option value="2">Amado Hernandez</option>
-                    <option value="3">F. H. Batacan</option>
+                    <?php foreach($authors as $author): ?>
+                    <option value="<?php echo $author['author_id']; ?>"><?php echo $author['author_firstname'] . ' ' . $author['author_lastname']; ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button class="btn btn-outline-primary w-100" type="submit" name="assign_author">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (book_id, author_id).</div>
@@ -229,23 +264,25 @@ if(isset($_POST['add_books'])){
               <h6 class="mb-2">Assign Genre to Book</h6>
               <p class="small-muted mb-3">Creates a row in <b>BookGenre</b>.</p>
               <!-- Later in PHP: action="../php/bookgenre/create.php" method="POST" -->
-              <form action="#" method="POST" class="row g-2">
+              <form action="books.php" method="POST" class="row g-2">
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
                     <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php foreach($books as $book): ?>
+                    <option value="<?php echo $book['book_id']; ?>"><?php echo $book['book_title']; ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="genre_id" required>
                     <option value="">Select genre</option>
-                    <option value="1">Classic</option>
-                    <option value="5">Philippine Literature</option>
+                    <?php foreach($genres as $genre): ?>
+                    <option value="<?php echo $genre['genre_id']; ?>"><?php echo $genre['genre_name']; ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button class="btn btn-outline-primary w-100" type="submit" name="assign_genre">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (genre_id, book_id).</div>
@@ -297,14 +334,14 @@ const bookMessage = <?php echo json_encode($bookmessage) ?>;
 if(bookStatus == 'success') {
   Swal.fire({
     icon: 'success',
-    title: 'success',
+    title: 'Success',
     text: bookMessage,
     confirmButtonText: 'OK'
   });
-}else if(bookStatus == 'error') {
+}else if(bookStatus == 'Error') {
   Swal.fire({
     icon: 'error',
-    title: 'error',
+    title: 'Error',
     text: bookMessage,
     confirmButtonText: 'OK'
   });

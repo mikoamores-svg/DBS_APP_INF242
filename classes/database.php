@@ -108,4 +108,73 @@ class database{
             throw $e;
         }
     }
+
+    function getBooks(){
+        $con = $this->opencon();
+        return $con->query("SELECT * FROM books")->fetchAll();
+    }
+
+    function insertBookCopy($book_id, $status) {
+        $con = $this->opencon();
+
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO bookcopy (book_id, status) 
+            VALUES (?,?) ");
+            $stmt->execute([$book_id, $status]);
+            $con->commit();
+            return true;
+        }catch(PDOException $e) {
+            if($con->inTransaction()) {
+                $con->rollback();
+            }
+            throw $e;
+        }
+    }
+
+    function insertBookAuthor($book_id, $author_id) {
+        $con = $this->opencon();
+
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO bookauthors (book_id, author_id) 
+            VALUES (?,?) ");
+            $stmt->execute([$book_id, $author_id]);
+            $con->commit();
+            return true;
+        }catch(PDOException $e) {
+            if($con->inTransaction()) {
+                $con->rollback();
+            }
+            throw $e;
+        }
+    }
+
+    function insertBookGenre($book_id, $genre_id) {
+        $con = $this->opencon();
+
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO bookgenre (genre_id, book_id) 
+            VALUES (?,?) ");
+            $stmt->execute([$genre_id, $book_id]);
+            $con->commit();
+            return true;
+        }catch(PDOException $e) {
+            if($con->inTransaction()) {
+                $con->rollback();
+            }
+            throw $e;
+        }
+    }
+
+    function getAuthors(){
+        $con = $this->opencon();
+        return $con->query("SELECT * FROM authors")->fetchAll();
+    }
+
+    function getGenres(){
+        $con = $this->opencon();
+        return $con->query("SELECT * FROM genres")->fetchAll();
+    }
 }
