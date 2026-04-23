@@ -194,4 +194,33 @@ class database{
             JOIN BookCopy ON Books.book_id = BookCopy.book_id
             GROUP BY 1")->fetchAll();
         }
+
+    function updateBook($book_id, $title, $isbn, $year, $publisher)
+{
+    $con = $this->opencon();
+ 
+    try {
+        $con->beginTransaction();
+ 
+        $stmt = $con->prepare("
+            UPDATE Books
+            SET book_title = ?,
+                book_isbn = ?,
+                book_publication_year = ?,
+                book_publisher = ?
+            WHERE book_id = ?
+        ");
+ 
+        $stmt->execute([$title, $isbn, $year, $publisher, $book_id]);
+ 
+        $con->commit();
+        return true; // Successfully updated
+ 
+    } catch (PDOException $e) {
+        if ($con->inTransaction()) {
+            $con->rollBack();
+        }
+        throw $e;
+    }
+}
 }

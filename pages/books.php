@@ -72,6 +72,24 @@ if(isset($_POST['assign_genre'])){
   }
 }
 
+// Handle Edit Book
+if(isset($_POST['update_book'])){
+  $book_id = $_POST['book_id'];
+  $booktitle = $_POST['book_title'];
+  $bookisbns = $_POST['book_isbn'];
+  $book_pub_year = $_POST['book_publication_year'];
+  $bookpublisher = $_POST['book_publisher'];
+
+  try {
+    $con->updateBook($book_id, $booktitle, $bookisbns, $book_pub_year, $bookpublisher);
+    $bookstatus = 'success';
+    $bookmessage = 'Book updated successfully';
+  }catch(Exception $e){
+    $bookstatus = 'Error';
+    $bookmessage = $e->getMessage();
+  }
+}
+
 // Fetch books, authors, and genres
 $books = $con->getBooks();
 $authors = $con->getAuthors();
@@ -132,7 +150,7 @@ $genres = $con->getGenres();
           </div>
           <div class="mb-3">
             <label class="form-label">Publication Year</label>
-            <input class="form-control" name="book_publication_year" type="number" min="1500" max="2100" placeholder="optional">
+            <input class="form-control" name="book_publication_year" type="number">
           </div>
           <div class="mb-3">
             <label class="form-label">Edition</label>
@@ -219,8 +237,9 @@ $genres = $con->getGenres();
               echo'<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editBookModal"
               data-book-id="' . $book['book_id'] . '"
               data-book-title="' . htmlspecialchars($book['book_title'], ENT_QUOTES) . '"
-              
-              
+              data-book-isbn="' . htmlspecialchars($book['book_isbn'], ENT_QUOTES) . '"
+              data-book-year="' . $book['book_publication_year'] . '"
+              data-book-publisher="' . htmlspecialchars($book['book_publisher'], ENT_QUOTES) . '"
               >Edit</button>';
  
               echo'<button type="button" class="btn btn-danger">Delete</button>';
@@ -310,23 +329,25 @@ $genres = $con->getGenres();
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <!-- Later in PHP: load existing values -->
-        <form action="#" method="POST">
-
-        <input type="hidden" name="book_id" id="edit-book-id">
+        <form action="books.php" method="POST">
+          <input type="hidden" name="book_id" id="edit-book-id">
           <div class="mb-3">
             <label class="form-label">Title</label>
-            <input class="form-control" value="Noli Me Tangere">
+            <input class="form-control" name="book_title" id="edit-book-title" required>
           </div>
           <div class="mb-3">
             <label class="form-label">ISBN</label>
-            <input class="form-control" value="9789710810736">
+            <input class="form-control" name="book_isbn" id="edit-book-isbn">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Publication Year</label>
+            <input class="form-control" name="book_publication_year" id="edit-book-year" type="number" min="1500" max="2100">
           </div>
           <div class="mb-3">
             <label class="form-label">Publisher</label>
-            <input class="form-control" value="National Book Store">
+            <input class="form-control" name="book_publisher" id="edit-book-publisher">
           </div>
-          <button class="btn btn-primary w-100" type="button">Save Changes</button>
+          <button class="btn btn-primary w-100" type="submit" name="update_book">Save Changes</button>
         </form>
       </div>
     </div>
@@ -357,8 +378,18 @@ if(bookStatus == 'success') {
 </script>
 
 <script>
-  const editBookModal = document.getElementById('editBookModal');
-
+const editModal = document.getElementById('editBookModal');
+ 
+editModal.addEventListener('show.bs.modal', function (event) {
+  const btn = event.relatedTarget;
+  if (!btn) return;
+ 
+  document.getElementById('edit-book-id').value = btn.getAttribute('data-book-id') || '';
+  document.getElementById('edit-book-title').value = btn.getAttribute('data-book-title') || '';
+  document.getElementById('edit-book-isbn').value = btn.getAttribute('data-book-isbn') || '';
+  document.getElementById('edit-book-year').value = btn.getAttribute('data-book-year') || '';
+  document.getElementById('edit-book-publisher').value = btn.getAttribute('data-book-publisher') || '';
+});
 </script>
 </body>
 </html>
