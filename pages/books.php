@@ -3,6 +3,8 @@
 require_once('../classes/database.php');
 $con = new database();
 $data = $con->opencon();
+$allbooks = $con->viewbooks();
+
 
 $bookstatus = null;
 $bookmessage = '';
@@ -201,27 +203,31 @@ $genres = $con->getGenres();
               </tr>
             </thead>
             <tbody>
-              <?php if(count($books) > 0): ?>
-                <?php foreach($books as $book): ?>
-                <tr>
-                  <td><?php echo $book['book_id']; ?></td>
-                  <td><?php echo $book['book_title']; ?></td>
-                  <td><?php echo $book['book_isbn'] ?? 'N/A'; ?></td>
-                  <td><?php echo $book['book_publication_year'] ?? 'N/A'; ?></td>
-                  <td><?php echo $book['book_publisher'] ?? 'N/A'; ?></td>
-                  <td>-</td>
-                  <td><span class="badge text-bg-secondary">-</span></td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
-                  </td>
-                </tr>
-                <?php endforeach; ?>
-              <?php else: ?>
-                <tr>
-                  <td colspan="8" class="text-center text-muted py-3">No books found</td>
-                </tr>
-              <?php endif; ?>
+              <?php
+              foreach ($allbooks as $book) {
+              echo '<tr>';
+              echo'<td>' . $book['book_id'] . '</td>';
+              echo'<td>' . $book['book_title'] . '</td>';
+              echo'<td>' . $book['book_isbn'] . '</td>';
+              echo'<td>' . $book['book_publication_year'] . '</td>';
+              echo'<td>' . $book['book_publisher'] . '</td>';
+              echo'<td class="text-center">' . $book['Copies'] . '</td>';
+              echo'<td class="text-center"><span class="badge text-bg-success">' . $book['Available_Copies'] . '</span></td>';
+              echo'<td class="text-end">';
+              echo'<div class="btn-group" role="group">';
+ 
+              echo'<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editBookModal"
+              data-book-id="' . $book['book_id'] . '"
+              data-book-title="' . htmlspecialchars($book['book_title'], ENT_QUOTES) . '"
+              
+              
+              >Edit</button>';
+ 
+              echo'<button type="button" class="btn btn-danger">Delete</button>';
+              echo'</div>';
+              echo'</td>';
+              echo'</tr>';
+                }?>
             </tbody>
           </table>
         </div>
@@ -306,6 +312,8 @@ $genres = $con->getGenres();
       <div class="modal-body">
         <!-- Later in PHP: load existing values -->
         <form action="#" method="POST">
+
+        <input type="hidden" name="book_id" id="edit-book-id">
           <div class="mb-3">
             <label class="form-label">Title</label>
             <input class="form-control" value="Noli Me Tangere">
@@ -346,6 +354,11 @@ if(bookStatus == 'success') {
     confirmButtonText: 'OK'
   });
 }
+</script>
+
+<script>
+  const editBookModal = document.getElementById('editBookModal');
+
 </script>
 </body>
 </html>

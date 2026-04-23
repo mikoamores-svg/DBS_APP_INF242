@@ -177,4 +177,21 @@ class database{
         $con = $this->opencon();
         return $con->query("SELECT * FROM genres")->fetchAll();
     }
+
+    function viewbooks()
+        {
+            $con = $this->opencon();
+            return $con->query("SELECT
+            Books.book_id,
+            Books.book_title,
+            Books.book_isbn,
+            Books.book_publication_year,
+            Books.book_publisher,
+            COUNT(BookCopy.copy_id) AS Copies,
+            SUM(BookCopy.status = 'Available') AS Available_Copies
+            FROM
+            Books
+            JOIN BookCopy ON Books.book_id = BookCopy.book_id
+            GROUP BY 1")->fetchAll();
+        }
 }
