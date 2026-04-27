@@ -1,3 +1,15 @@
+<?php
+
+require_once '../classes/database.php';
+$con = new database();
+$bookcount = $con->countBook();
+$bookcopycount = $con->countAvailBook();
+$openloans = $con->countOpenLoans();
+$allloans = $con->getAllLoans();
+$overdueloans = $con->getoverdueloans();
+
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,22 +23,22 @@
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
   <div class="container">
-    <a class="navbar-brand fw-semibold" href="admin-dashboard.html">Library Admin</a>
+    <a class="navbar-brand fw-semibold" href="admin-dashboard.php">Library Admin</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navAdmin">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div id="navAdmin" class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto gap-lg-1">
-        <li class="nav-item"><a class="nav-link active" href="admin-dashboard.html">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="books.html">Books</a></li>
+        <li class="nav-item"><a class="nav-link active" href="admin-dashboard.php">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="books.php">Books</a></li>
         <li class="nav-item"><a class="nav-link" href="borrowers.php">Borrowers</a></li>
-        <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
-        <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
-        <li class="nav-item"><a class="nav-link" href="catalog.html">Catalog</a></li>
+        <li class="nav-item"><a class="nav-link" href="checkout.php">Checkout</a></li>
+        <li class="nav-item"><a class="nav-link" href="return.php">Return</a></li>
+        <li class="nav-item"><a class="nav-link" href="catalog.php">Catalog</a></li>
       </ul>
       <div class="d-flex align-items-center gap-2">
         <span class="badge badge-soft">Role: ADMIN</span>
-        <a class="btn btn-sm btn-outline-secondary" href="login.html">Logout</a>
+        <a class="btn btn-sm btn-outline-secondary" href="login.php">Logout</a>
       </div>
     </div>
   </div>
@@ -37,31 +49,31 @@
     <div class="col-12 col-lg-8">
       <div class="card p-4">
         <h5 class="mb-1">Quick Overview</h5>
-        <p class="small-muted mb-4">These are placeholder values—connect to PHP later.</p>
+        <p class="small-muted mb-4">Live data from database</p>
 
         <div class="row g-3">
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Total Books</div>
-              <div class="fs-4 fw-semibold">5</div>
+              <div class="fs-4 fw-semibold"><?php echo $bookcount; ?></div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Total Copies</div>
-              <div class="fs-4 fw-semibold">11</div>
+              <div class="fs-4 fw-semibold"><?php echo $bookcopycount; ?></div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Open Loans</div>
-              <div class="fs-4 fw-semibold">2</div>
+              <div class="fs-4 fw-semibold"><?php echo $openloans; ?></div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Overdue Items</div>
-              <div class="fs-4 fw-semibold">0</div>
+              <div class="fs-4 fw-semibold"><?php echo $overdueloans; ?></div>
             </div>
           </div>
         </div>
@@ -81,27 +93,22 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1004</td>
-                <td>Ana Bautista</td>
-                <td><span class="badge text-bg-warning">OPEN</span></td>
-                <td>2026-02-15</td>
-                <td>admin.library@samplemail.com</td>
-              </tr>
-              <tr>
-                <td>1003</td>
-                <td>Mark Reyes</td>
-                <td><span class="badge text-bg-warning">OPEN</span></td>
-                <td>2026-01-10</td>
-                <td>admin.library@samplemail.com</td>
-              </tr>
-              <tr>
-                <td>1002</td>
-                <td>Maria Santos</td>
-                <td><span class="badge text-bg-success">CLOSED</span></td>
-                <td>2025-12-12</td>
-                <td>admin.library@samplemail.com</td>
-              </tr>
+              <?php 
+              if(!empty($allloans)) {
+                foreach ($allloans as $loan) {
+                  $statusBadge = ($loan['loan_status'] == 'OPEN') ? 'warning' : 'success';
+                  echo "<tr>
+                          <td>{$loan['loan_id']}</td>
+                          <td>{$loan['borrower_firstname']} {$loan['borrower_lastname']}</td>
+                          <td><span class=\"badge text-bg-{$statusBadge}\">{$loan['loan_status']}</span></td>
+                          <td>" . date('Y-m-d', strtotime($loan['loan_date'])) . "</td>
+                          <td>{$loan['username']}</td>
+                        </tr>";
+                }
+              } else {
+                echo "<tr><td colspan=\"5\" class=\"text-center text-muted\">No loans found</td></tr>";
+              }
+              ?>
             </tbody>
           </table>
         </div>
@@ -113,10 +120,10 @@
       <div class="card p-4">
         <h6 class="mb-3">Admin Shortcuts</h6>
         <div class="d-grid gap-2">
-          <a class="btn btn-primary" href="checkout.html">Process Checkout</a>
-          <a class="btn btn-outline-primary" href="return.html">Process Return</a>
-          <a class="btn btn-outline-secondary" href="books.html">Manage Books</a>
-          <a class="btn btn-outline-secondary" href="borrowers.html">Manage Borrowers</a>
+          <a class="btn btn-primary" href="checkout.php">Process Checkout</a>
+          <a class="btn btn-outline-primary" href="return.php">Process Return</a>
+          <a class="btn btn-outline-secondary" href="books.php">Manage Books</a>
+          <a class="btn btn-outline-secondary" href="borrowers.php">Manage Borrowers</a>
         </div>
         <hr class="my-4">
         <div class="small-muted">

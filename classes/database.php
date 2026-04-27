@@ -223,4 +223,41 @@ class database{
         throw $e;
     }
 }
+function getAllLoans(){
+    $con = $this->opencon();
+    return $con->query("SELECT 
+        l.loan_id,
+        b.borrower_firstname,
+        b.borrower_lastname,
+        l.loan_status,
+        l.loan_date,
+        u.username
+    FROM loan l
+    JOIN borrowers b ON l.borrower_id = b.borrower_id
+    JOIN users u ON l.processed_by_user_id = u.user_id
+    ORDER BY l.loan_date DESC")->fetchAll();
+    
+}
+function countBook(){
+    $con = $this->opencon();
+    return $con->query("SELECT COUNT(*) AS total_books FROM Books")->fetchColumn();
+}
+ 
+function countAvailBook(){
+    $con = $this->opencon();
+    return $con->query("SELECT COUNT(*) AS total_copies FROM BookCopy")->fetchColumn();
+}
+
+
+function countOpenLoans(){
+    $con = $this->opencon();
+    return $con->query("SELECT COUNT(*) AS open_loans FROM loan WHERE loan_status = 'OPEN'")->fetchColumn();
+}
+
+
+
+function getoverdueloans(){
+    $con = $this->opencon();
+    return $con->query("SELECT count(*) AS overdue_items FROM loan WHERE loan_status = 'OPEN' AND loan_date < CURDATE() - INTERVAL 14 DAY")->fetchColumn();
+}
 }
